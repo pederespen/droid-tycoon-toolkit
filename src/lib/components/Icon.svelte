@@ -7,9 +7,12 @@
     | 'nova'
     | 'cosmetics'
     | 'compass'
+    | 'layers'
     | 'panel-left'
     | 'sun'
     | 'moon'
+    | 'info'
+    | 'external-link'
     | 'arrow-right'
     | 'chevron-down'
     | 'search'
@@ -80,6 +83,16 @@
       d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"
     />
     <circle cx="12" cy="12" r="10" />
+  {:else if name === 'layers'}
+    <path
+      d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+    />
+    <path
+      d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+    />
+    <path
+      d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+    />
   {:else if name === 'sun'}
     <circle cx="12" cy="12" r="4" />
     <path d="M12 2v2" />
@@ -92,6 +105,14 @@
     <path d="m19.07 4.93-1.41 1.41" />
   {:else if name === 'moon'}
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+  {:else if name === 'info'}
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  {:else if name === 'external-link'}
+    <path d="M15 3h6v6" />
+    <path d="M10 14 21 3" />
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
   {:else if name === 'arrow-right'}
     <path d="M5 12h14" />
     <path d="m12 5 7 7-7 7" />

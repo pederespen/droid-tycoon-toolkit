@@ -67,6 +67,18 @@ export type RebirthCycleMatch = {
   requirements: Requirement[]
 }
 
+// The consolidated, highest-variant requirement for a single droid across a
+// range of rebirth levels on one Super Rebirth cycle. Because a higher variant
+// covers all lower ones (e.g. a Rainbow droid satisfies its Basic/Gold/Diamond
+// requirements too), only the highest variant needed is kept. `levels` lists
+// the rebirth steps (by `from` level) where this droid is required.
+export type CycleDroidRequirement = {
+  name: string
+  variant: Variant
+  rarity: Rarity
+  levels: number[]
+}
+
 export type NovaShopCategory = 'Core' | 'Workshop' | 'Cosmetics'
 
 // A single Nova Shop upgrade track. `costs[i]` is the Nova Crystal cost of the

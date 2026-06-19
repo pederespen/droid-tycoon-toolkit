@@ -3,6 +3,7 @@ import type {
   Requirement,
   RequirementMatch,
   RebirthCycleMatch,
+  CycleDroidRequirement,
   Rarity,
   Variant,
 } from './types'
@@ -117,4 +118,66 @@ export const findRebirthCycleMatches = (
     }
   })
   return matches
+}
+
+// Rarity ordering for sorting requirement lists (lowest → highest).
+const rarityOrder: Rarity[] = ['Common', 'Rare', 'Epic', 'Legendary']
+const rarityRank = new Map<Rarity, number>(
+  rarityOrder.map((rarity, index) => [rarity, index]),
+)
+
+// For a given Super Rebirth cycle (1–4) and an inclusive rebirth-level range,
+// build the consolidated list of every droid required, keeping only the highest
+// variant needed per droid (a higher variant covers all lower ones). The range
+// is expressed as the rebirth level you're starting from (`fromLevel`) up to the
+// level you want to reach (`toLevel`); a step is included when its `from` is at
+// or after `fromLevel` and its `to` is at or before `toLevel`.
+export const getCycleDroidRequirements = (
+  rebirthSteps: RebirthStep[],
+  cycle: number,
+  fromLevel: number,
+  toLevel: number,
+): CycleDroidRequirement[] => {
+  const pathIndex = cycle - 1
+  if (pathIndex < 0) return []
+
+  const byDroid = new Map<string, CycleDroidRequirement>()
+  for (const step of rebirthSteps) {
+    if (step.from < fromLevel || step.to > toLevel) continue
+    for (const requirement of step.patterns[pathIndex] ?? []) {
+      const key = normalizeDroidName(requirement.name)
+      const existing = byDroid.get(key)
+      if (!existing) {
+        byDroid.set(key, {
+          name: requirement.name,
+          variant: requirement.variant,
+          rarity: requirement.rarity,
+          levels: [step.from],
+        })
+        continue
+      }
+      existing.levels.push(step.from)
+      if (
+        (variantRank.get(requirement.variant) ?? 0) >
+        (variantRank.get(existing.variant) ?? 0)
+      ) {
+        existing.variant = requirement.variant
+        existing.name = requirement.name
+      }
+    }
+  }
+
+  return Array.from(byDroid.values())
+    .map((entry) => ({
+      ...entry,
+      levels: [...new Set(entry.levels)].sort((a, b) => a - b),
+    }))
+    .sort(
+      (first, second) =>
+        (variantRank.get(second.variant) ?? 0) -
+          (variantRank.get(first.variant) ?? 0) ||
+        (rarityRank.get(second.rarity) ?? 0) -
+          (rarityRank.get(first.rarity) ?? 0) ||
+        first.name.localeCompare(second.name),
+    )
 }

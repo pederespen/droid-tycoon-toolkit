@@ -7,11 +7,6 @@
 <div class="mx-auto max-w-4xl">
   <div class="mb-8">
     <h1 class="text-2xl font-semibold text-foreground">Droid Tycoon Toolkit</h1>
-    <p class="mt-2 max-w-2xl text-sm text-muted">
-      A clean reference for everything in the game — droids, the credit economy,
-      rebirth requirements, the Nova Shop and cosmetics. Pick a section to dive
-      in.
-    </p>
   </div>
 
   <div class="grid gap-4 sm:grid-cols-2">
