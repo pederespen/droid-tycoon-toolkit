@@ -1,6 +1,7 @@
 import type { Component } from 'svelte'
 import type { IconName } from './components/Icon.svelte'
 import CosmeticsSection from './components/sections/CosmeticsSection.svelte'
+import CycleFinderSection from './components/sections/CycleFinderSection.svelte'
 import DroidsSection from './components/sections/DroidsSection.svelte'
 import EconomySection from './components/sections/EconomySection.svelte'
 import NovaSection from './components/sections/NovaSection.svelte'
@@ -8,10 +9,16 @@ import RebirthsSection from './components/sections/RebirthsSection.svelte'
 import { effects, hats, paints } from './cosmeticsData'
 import { droids } from './droidsData'
 import { droidEconomy } from './economyData'
-import { novaUpgrades } from './novaData'
+import { novaUpgrades, superRebirthPathCount } from './novaData'
 import { rebirthSteps } from './rebirthData'
 
-export type SectionId = 'droids' | 'economy' | 'rebirths' | 'nova' | 'cosmetics'
+export type SectionId =
+  | 'cycle-finder'
+  | 'droids'
+  | 'economy'
+  | 'rebirths'
+  | 'nova'
+  | 'cosmetics'
 
 export type Section = {
   id: SectionId
@@ -25,6 +32,17 @@ export type Section = {
 }
 
 export const sections: Section[] = [
+  {
+    id: 'cycle-finder',
+    label: 'Cycle Finder',
+    path: '/cycle-finder',
+    icon: 'compass',
+    description:
+      'Enter your next rebirth’s three droids to find which Super Rebirth cycle you’re on.',
+    count: superRebirthPathCount,
+    countLabel: 'cycles',
+    component: CycleFinderSection,
+  },
   {
     id: 'droids',
     label: 'Droids',

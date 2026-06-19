@@ -58,6 +58,15 @@ export type RequirementMatch = {
   requirements: Requirement[]
 }
 
+// A match for the Super Rebirth cycle finder: a rebirth step whose requirement
+// droids (for one of its four paths) match the droids the player entered.
+// `cycle` is the 1-based Super Rebirth path (1–4) that matched.
+export type RebirthCycleMatch = {
+  cycle: number
+  step: RebirthStep
+  requirements: Requirement[]
+}
+
 export type NovaShopCategory = 'Core' | 'Workshop' | 'Cosmetics'
 
 // A single Nova Shop upgrade track. `costs[i]` is the Nova Crystal cost of the

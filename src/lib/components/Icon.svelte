@@ -6,10 +6,14 @@
     | 'rebirths'
     | 'nova'
     | 'cosmetics'
+    | 'compass'
     | 'panel-left'
     | 'sun'
     | 'moon'
     | 'arrow-right'
+    | 'chevron-down'
+    | 'search'
+    | 'check'
 </script>
 
 <script lang="ts">
@@ -71,6 +75,11 @@
   {:else if name === 'panel-left'}
     <rect width="18" height="18" x="3" y="3" rx="2" />
     <path d="M9 3v18" />
+  {:else if name === 'compass'}
+    <path
+      d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"
+    />
+    <circle cx="12" cy="12" r="10" />
   {:else if name === 'sun'}
     <circle cx="12" cy="12" r="4" />
     <path d="M12 2v2" />
@@ -86,5 +95,12 @@
   {:else if name === 'arrow-right'}
     <path d="M5 12h14" />
     <path d="m12 5 7 7-7 7" />
+  {:else if name === 'chevron-down'}
+    <path d="m6 9 6 6 6-6" />
+  {:else if name === 'search'}
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  {:else if name === 'check'}
+    <path d="M20 6 9 17l-5-5" />
   {/if}
 </svg>

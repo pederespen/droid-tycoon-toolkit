@@ -2,6 +2,7 @@ import type {
   RebirthStep,
   Requirement,
   RequirementMatch,
+  RebirthCycleMatch,
   Rarity,
   Variant,
 } from './types'
@@ -84,3 +85,36 @@ export const getExactFutureMatches = (
       ),
     }))
     .filter((match) => match.requirements.length > 0)
+
+// Given the three droids a player sees for their next rebirth, find which
+// Super Rebirth path(s) those droids belong to. The player's current rebirth
+// level pins the exact step (the next rebirth is the step whose `from` equals
+// the current level), so droids that recur across steps no longer cause false
+// matches. Each step has four patterns (paths 1–4); a path that matches the
+// entered droid set reveals the player's current Super Rebirth cycle. Matching
+// is order-independent and uses droid names only (variants are shown in the
+// result for confirmation).
+export const findRebirthCycleMatches = (
+  rebirthSteps: RebirthStep[],
+  currentLevel: number,
+  droidNames: string[],
+): RebirthCycleMatch[] => {
+  const target = droidNames.map(normalizeDroidName).filter(Boolean)
+  if (target.length !== 3) return []
+  const targetKey = [...target].sort().join('|')
+
+  const step = rebirthSteps.find((candidate) => candidate.from === currentLevel)
+  if (!step) return []
+
+  const matches: RebirthCycleMatch[] = []
+  step.patterns.forEach((requirements, pathIndex) => {
+    const patternKey = requirements
+      .map((requirement) => normalizeDroidName(requirement.name))
+      .sort()
+      .join('|')
+    if (patternKey === targetKey) {
+      matches.push({ cycle: pathIndex + 1, step, requirements })
+    }
+  })
+  return matches
+}
