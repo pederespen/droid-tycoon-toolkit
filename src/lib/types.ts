@@ -2,6 +2,43 @@ export type Variant = 'Basic' | 'Gold' | 'Diamond' | 'Rainbow' | 'Beskar'
 export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Legendary'
 export type ToolTab = 'next' | 'lookup' | 'overview'
 
+export type DroidType = 'Worker' | 'Astromech' | 'Battle'
+export type DroidCategory = Rarity | 'Iconic'
+
+export type Droid = {
+  name: string
+  type: DroidType
+  category: DroidCategory
+}
+
+export type CosmeticKind = 'Hat' | 'Paint' | 'Effect'
+
+export type Cosmetic = {
+  kind: CosmeticKind
+  name: string
+  requirement: string
+}
+
+// Economy stats for a single droid variant. Amounts are kept as the
+// abbreviated strings used in-game (e.g. '3.8k', '112.50m'); use
+// `parseAmount` from economyData to convert to numbers. `income` is the
+// per-second credit generation. Values are null when not applicable
+// (e.g. iconic droids have no cost or sell value).
+export type VariantEconomy = {
+  cost: string | null
+  income: string | null
+  value: string | null
+}
+
+export type DroidEconomy = {
+  name: string
+  base: VariantEconomy
+  gold: VariantEconomy
+  diamond: VariantEconomy
+  rainbow: VariantEconomy
+  beskar: VariantEconomy
+}
+
 export type Requirement = {
   variant: Variant
   name: string
@@ -19,4 +56,27 @@ export type RebirthStep = {
 export type RequirementMatch = {
   step: RebirthStep
   requirements: Requirement[]
+}
+
+export type NovaShopCategory = 'Core' | 'Workshop' | 'Cosmetics'
+
+// A single Nova Shop upgrade track. `costs[i]` is the Nova Crystal cost of the
+// upgrade's level i+1; the array length is the number of *known* levels.
+// `endless` is true when the upgrade can keep being upgraded beyond the known
+// levels (shown yellow in the sheet — further costs just aren't discovered
+// yet); false when the upgrade is capped at its last known level (shown grey).
+export type NovaUpgrade = {
+  category: NovaShopCategory
+  name: string
+  costs: number[]
+  endless: boolean
+}
+
+// Super Rebirth reward for reaching a given rebirth level. Multipliers are
+// stored as percentages (e.g. 22 means +22% credits).
+export type NovaRebirthReward = {
+  level: number
+  crystals: number
+  creditMult: number
+  xpMult: number
 }

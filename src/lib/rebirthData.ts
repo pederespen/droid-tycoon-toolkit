@@ -408,17 +408,17 @@ export const rebirthSteps: RebirthStep[] = [
       [
         req('Rainbow', 'Strike-Orb', 'Epic'),
         req('Gold', 'BB9', 'Legendary'),
-        req('Diamond', 'Proto-Roller', 'Legendary'),
+        req('Gold', 'Proto-Roller', 'Legendary'),
       ],
       [
         req('Rainbow', 'Strike-Orb', 'Epic'),
         req('Gold', 'BB9', 'Legendary'),
-        req('Diamond', 'Proto-Roller', 'Legendary'),
+        req('Gold', 'Proto-Roller', 'Legendary'),
       ],
       [
         req('Diamond', 'B2 Heavy', 'Epic'),
         req('Rainbow', 'B2 Super', 'Epic'),
-        req('Diamond', 'R7', 'Legendary'),
+        req('Basic', 'B2-RP', 'Legendary'),
       ],
     ],
   },
