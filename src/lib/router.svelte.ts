@@ -1,11 +1,29 @@
 // Tiny client-side router built on the History API. Exposes a reactive
 // `path` and a `navigate` helper. Vite's dev server (and most static hosts
 // with SPA fallback) serve index.html for any path, so deep links work.
+
+// When deployed under a sub-path (e.g. GitHub Pages project page at
+// `/droid-tycoon-toolkit/`), Vite injects that prefix as `BASE_URL`. We strip
+// it on reads and add it back on writes so the rest of the app can keep using
+// clean, root-relative paths like `/rebirths`.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+function stripBase(pathname: string): string {
+  const stripped = pathname.startsWith(base)
+    ? pathname.slice(base.length)
+    : pathname
+  return stripped === '' ? '/' : stripped
+}
+
+// Resolves an app path (e.g. `/rebirths`) to a real URL including the base
+// prefix, for use in anchor `href`s so middle-click / open-in-new-tab work.
+export const href = (to: string): string => base + to
+
 function createRouter() {
-  let path = $state(window.location.pathname)
+  let path = $state(stripBase(window.location.pathname))
 
   window.addEventListener('popstate', () => {
-    path = window.location.pathname
+    path = stripBase(window.location.pathname)
   })
 
   return {
@@ -14,7 +32,7 @@ function createRouter() {
     },
     navigate(to: string) {
       if (to === path) return
-      window.history.pushState({}, '', to)
+      window.history.pushState({}, '', base + to)
       path = to
       window.scrollTo({ top: 0 })
     },

@@ -1,9 +1,11 @@
 <script lang="ts">
   import Icon from './lib/components/Icon.svelte'
   import OverviewSection from './lib/components/sections/OverviewSection.svelte'
-  import { handleLinkClick, router } from './lib/router.svelte'
+  import { handleLinkClick, href, router } from './lib/router.svelte'
   import { sectionByPath, sectionGroups, sections } from './lib/sections'
   import { getTheme, toggleTheme, type Theme } from './lib/theme'
+
+  const logoUrl = `${import.meta.env.BASE_URL}droid.svg`
 
   let theme = $state<Theme>(getTheme())
 
@@ -44,12 +46,12 @@
     >
       {#if !collapsed}
         <a
-          href="/"
+          href={href('/')}
           onclick={(event) => handleLinkClick(event, '/')}
           title="Droid Tycoon"
           class="flex min-w-0 items-center gap-2.5 overflow-hidden rounded-lg px-2 py-1 transition-colors hover:bg-elevated/60"
         >
-          <img src="/droid.svg" alt="" class="size-7 shrink-0" />
+          <img src={logoUrl} alt="" class="size-7 shrink-0" />
           <span class="flex min-w-0 flex-col">
             <span class="truncate text-sm font-semibold text-foreground">
               Droid Tycoon
@@ -83,7 +85,7 @@
           {/if}
           {#each group.sections as section (section.id)}
             <a
-              href={section.path}
+              href={href(section.path)}
               onclick={(event) => handleLinkClick(event, section.path)}
               title={collapsed ? section.label : undefined}
               class="flex items-center gap-3 rounded-lg text-sm transition-colors {collapsed
@@ -202,11 +204,11 @@
     >
       <div class="flex items-center justify-between px-4 py-3">
         <a
-          href="/"
+          href={href('/')}
           onclick={(event) => handleLinkClick(event, '/')}
           class="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
-          <img src="/droid.svg" alt="" class="size-6 shrink-0" />
+          <img src={logoUrl} alt="" class="size-6 shrink-0" />
           Droid Tycoon
         </a>
         <button
@@ -220,7 +222,7 @@
       </div>
       <nav class="flex gap-1 overflow-x-auto px-3 pb-2">
         <a
-          href="/"
+          href={href('/')}
           onclick={(event) => handleLinkClick(event, '/')}
           class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition-colors {isHome
             ? 'bg-elevated font-medium text-foreground'
@@ -231,7 +233,7 @@
         </a>
         {#each sections as section (section.id)}
           <a
-            href={section.path}
+            href={href(section.path)}
             onclick={(event) => handleLinkClick(event, section.path)}
             class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition-colors {current?.id ===
             section.id

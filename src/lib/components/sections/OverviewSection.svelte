@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '$lib/components/Icon.svelte'
-  import { handleLinkClick } from '$lib/router.svelte'
+  import { handleLinkClick, href } from '$lib/router.svelte'
   import { sectionGroups } from '$lib/sections'
 </script>
 
@@ -20,7 +20,7 @@
         <div class="grid gap-4 sm:grid-cols-2">
           {#each group.sections as section (section.id)}
             <a
-              href={section.path}
+              href={href(section.path)}
               onclick={(event) => handleLinkClick(event, section.path)}
               class="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-accent/40 hover:bg-elevated/50"
             >
