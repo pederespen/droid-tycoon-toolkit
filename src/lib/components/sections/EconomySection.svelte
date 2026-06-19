@@ -21,8 +21,8 @@
 
   // --- Main economy table -------------------------------------------------
   const econGroups: ColumnGroup[] = [
-    { label: '', span: 1 },
-    { label: 'Base', span: 3 },
+    { label: '', span: 2 },
+    { label: 'Basic', span: 3 },
     { label: 'Gold', span: 3 },
     { label: 'Diamond', span: 3 },
     { label: 'Rainbow', span: 3 },
@@ -33,6 +33,7 @@
 
   const econColumns: Column[] = [
     { key: 'name', label: 'Droid' },
+    { key: 'rarity', label: 'Rarity' },
     ...variantKeys.flatMap((v) => [
       { key: `${v}Cost`, label: 'Cost', align: 'right' as const },
       { key: `${v}Income`, label: 'Income', align: 'right' as const },
@@ -41,7 +42,10 @@
   ]
 
   const econRows: Row[] = droidEconomy.map((d) => {
-    const row: Row = { name: d.name }
+    const row: Row = {
+      name: d.name,
+      rarity: categoryByName.get(d.name) ?? null,
+    }
     for (const v of variantKeys) {
       const stats = d[v]
       row[`${v}Cost`] = stats.cost ?? '—'
@@ -56,7 +60,7 @@
 
   const upgradeColumns: Column[] = [
     { key: 'rarity', label: 'Rarity' },
-    { key: 'baseToGold', label: 'Base → Gold', align: 'right' },
+    { key: 'baseToGold', label: 'Basic → Gold', align: 'right' },
     { key: 'goldToDiamond', label: 'Gold → Diamond', align: 'right' },
     { key: 'diamondToRainbow', label: 'Diamond → Rainbow', align: 'right' },
     { key: 'rainbowToBeskar', label: 'Rainbow → Beskar', align: 'right' },
@@ -135,13 +139,15 @@
     >
       {#snippet cell(row, column)}
         {#if column.key === 'name'}
-          <div class="flex items-center gap-2">
-            <span class="font-medium text-foreground">{row.name}</span>
-            {#if categoryByName.get(row.name as string)}
-              {@const cat = categoryByName.get(row.name as string)!}
-              <Badge tone={rarityTone[cat]}>{cat}</Badge>
-            {/if}
-          </div>
+          <span class="font-medium text-foreground">{row.name}</span>
+        {:else if column.key === 'rarity'}
+          {#if row.rarity}
+            <Badge tone={rarityTone[row.rarity as DroidCategory]}>
+              {row.rarity}
+            </Badge>
+          {:else}
+            <span class="text-subtle">—</span>
+          {/if}
         {:else}
           {row[column.key]}
         {/if}

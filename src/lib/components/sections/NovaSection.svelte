@@ -18,8 +18,8 @@
   const upgradeColumns: Column[] = [
     { key: 'name', label: 'Upgrade' },
     { key: 'category', label: 'Category' },
-    { key: 'levels', label: 'Levels', align: 'right' },
-    { key: 'costs', label: 'Crystal cost per level' },
+    { key: 'levels', label: 'Tiers', align: 'right' },
+    { key: 'costs', label: 'Crystal cost per tier' },
     { key: 'endless', label: 'Cap' },
   ]
 

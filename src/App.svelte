@@ -15,6 +15,8 @@
   const SHEET_URL =
     'https://docs.google.com/spreadsheets/d/1otLCKSCMKICMlnefirQ8KZhh_rdZTd5Mp8h0UYFUiqg/edit'
 
+  const REPO_URL = 'https://github.com/pederespen/droid-tycoon-toolkit'
+
   const current = $derived(sectionByPath(router.path))
   const isHome = $derived(router.path === '/')
 
@@ -133,18 +135,35 @@
               </p>
               <p class="mt-1.5 text-xs leading-relaxed text-muted">
                 A fan-made reference and set of planning tools for the Droid
-                Tycoon Fortnite game. All game data is community-sourced and may
-                change with updates.
+                Tycoon Fortnite game.
               </p>
-              <a
-                href={SHEET_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-opacity hover:opacity-80"
+              <p class="mt-3 text-xs leading-relaxed text-muted">
+                All game data comes from the community-maintained Droid Tycoon
+                spreadsheet — full credit to its authors.
+              </p>
+
+              <div
+                class="mt-3 flex items-center gap-4 border-t border-border pt-3"
               >
-                <Icon name="external-link" size={14} />
-                Data source spreadsheet
-              </a>
+                <a
+                  href={SHEET_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-opacity hover:opacity-80"
+                >
+                  <Icon name="external-link" size={14} />
+                  Spreadsheet
+                </a>
+                <a
+                  href={REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-foreground"
+                >
+                  <Icon name="github" size={14} />
+                  GitHub
+                </a>
+              </div>
             </div>
           </div>
         {/if}

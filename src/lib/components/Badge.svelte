@@ -13,6 +13,8 @@
   const toneClasses: Record<Tone, string> = {
     slate:
       'bg-slate-500/10 text-slate-700 ring-slate-500/20 dark:text-slate-300',
+    ghost: 'bg-transparent text-muted ring-border',
+    zinc: 'bg-zinc-600/15 text-zinc-700 ring-zinc-600/30 dark:text-zinc-300',
     blue: 'bg-blue-500/10 text-blue-700 ring-blue-500/20 dark:text-blue-300',
     purple:
       'bg-purple-500/10 text-purple-700 ring-purple-500/20 dark:text-purple-300',

@@ -3,6 +3,8 @@ import type { DroidCategory, DroidType, Variant } from './types'
 // Centralized color "tones" so badges and labels stay consistent everywhere.
 export type Tone =
   | 'slate'
+  | 'ghost'
+  | 'zinc'
   | 'blue'
   | 'purple'
   | 'amber'
@@ -28,11 +30,11 @@ export const typeTone: Record<DroidType, Tone> = {
 }
 
 export const variantTone: Record<Variant, Tone> = {
-  Basic: 'slate',
+  Basic: 'ghost',
   Gold: 'amber',
   Diamond: 'cyan',
   Rainbow: 'fuchsia',
-  Beskar: 'orange',
+  Beskar: 'zinc',
 }
 
 // Formats a per-second income string for display (e.g. '4.08k' -> '4.08k/s').

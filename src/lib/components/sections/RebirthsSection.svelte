@@ -9,15 +9,29 @@
   import { variantTone } from '$lib/display'
   import type { RebirthStep, Requirement } from '$lib/types'
 
-  const columns: Column[] = [
+  const baseColumns: Column[] = [
     { key: 'rebirth', label: 'Rebirth' },
     { key: 'cost', label: 'Cost', align: 'right' },
     { key: 'unlock', label: 'Unlocks' },
+  ]
+
+  const cycleColumns: Column[] = [
     { key: 'cycle0', label: 'Cycle 1' },
     { key: 'cycle1', label: 'Cycle 2' },
     { key: 'cycle2', label: 'Cycle 3' },
     { key: 'cycle3', label: 'Cycle 4' },
   ]
+
+  let visibleCycles = $state<boolean[]>([true, true, true, true])
+
+  const columns = $derived([
+    ...baseColumns,
+    ...cycleColumns.filter((_, i) => visibleCycles[i]),
+  ])
+
+  const toggleCycle = (index: number) => {
+    visibleCycles = visibleCycles.map((on, i) => (i === index ? !on : on))
+  }
 
   const rows = rebirthSteps as unknown as Row[]
 
@@ -33,6 +47,24 @@
 >
   {rebirthSteps.length} rebirths
 </SectionHeader>
+
+<div class="mb-4 flex flex-wrap items-center gap-2">
+  <span class="text-xs font-medium text-subtle">Show cycles:</span>
+  {#each cycleColumns as cycle, i (cycle.key)}
+    <button
+      type="button"
+      onclick={() => toggleCycle(i)}
+      aria-pressed={visibleCycles[i]}
+      class="cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors {visibleCycles[
+        i
+      ]
+        ? 'border-accent/40 bg-accent/10 text-accent'
+        : 'border-border bg-surface text-subtle hover:text-muted'}"
+    >
+      {cycle.label}
+    </button>
+  {/each}
+</div>
 
 <DataTable {columns} {rows} rowKey={(row) => (row as RebirthStep).from}>
   {#snippet cell(row, column)}
