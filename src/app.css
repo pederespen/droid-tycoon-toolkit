@@ -59,3 +59,112 @@
     font: inherit;
   }
 }
+
+/* Monochrome "shiny" treatment for the Flawless collectible dot/legend. In-game
+   Flawless is a glossy silver finish (not a color tier), so this is a static
+   silver sheen rather than a rainbow. */
+.flawless-shine {
+  background: conic-gradient(
+    from 45deg,
+    #6b7280,
+    #f8fafc,
+    #cbd5e1,
+    #94a3b8,
+    #ffffff,
+    #9ca3af,
+    #6b7280
+  );
+}
+
+/* Applied to a droid card's art when its Flawless slot is collected: a soft
+   white glow plus a glossy sheen that sweeps across the portrait. Bubbles are
+   rendered as individual elements (see .flawless-bubble). */
+.flawless-glow {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 12px 1px rgba(226, 232, 240, 0.55),
+    inset 0 0 18px rgba(255, 255, 255, 0.25);
+}
+
+.flawless-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.6) 29%,
+    rgba(255, 255, 255, 0.12) 35%,
+    transparent 41%,
+    transparent 68%,
+    rgba(255, 255, 255, 0.45) 75%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent 86%
+  );
+  background-size: 300% 300%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  animation: flawless-sheen 2.4s ease-in-out infinite;
+}
+
+/* A single rising bubble. Size, position, drift, speed and delay are set
+   inline per bubble; it floats up from below the card and fades as it rises. */
+.flawless-bubble {
+  position: absolute;
+  bottom: -10%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 32% 28%,
+    rgba(255, 255, 255, 0.95),
+    rgba(203, 213, 225, 0.55) 60%,
+    rgba(148, 163, 184, 0.25) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 0 5px rgba(255, 255, 255, 0.9),
+    inset 0 0 3px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  animation-name: flawless-rise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes flawless-sheen {
+  0% {
+    background-position: 200% 200%;
+  }
+  45%,
+  100% {
+    background-position: -100% -100%;
+  }
+}
+
+@keyframes flawless-rise {
+  0% {
+    bottom: -10%;
+    transform: translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    bottom: 110%;
+    transform: translateX(var(--drift, 0)) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flawless-glow::after,
+  .flawless-bubble {
+    animation: none;
+  }
+  .flawless-bubble {
+    display: none;
+  }
+}

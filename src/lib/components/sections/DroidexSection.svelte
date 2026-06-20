@@ -16,7 +16,7 @@
     Diamond: { dot: 'bg-cyan-400' },
     Rainbow: { dot: 'bg-gradient-to-br from-fuchsia-400 to-violet-400' },
     Beskar: { dot: 'bg-zinc-500' },
-    Flawless: { dot: 'bg-emerald-400' },
+    Flawless: { dot: 'flawless-shine' },
   }
 
   const slotOrder: CollectionSlot[] = [
@@ -26,6 +26,21 @@
     'Rainbow',
     'Beskar',
     'Flawless',
+  ]
+
+  // Floating "bubble" sparkles shown on Flawless-collected cards. Varied size,
+  // horizontal position, drift, speed and delay give an organic rising effect.
+  const flawlessBubbles = [
+    { size: 5, left: 12, drift: 6, duration: 4.2, delay: 0 },
+    { size: 9, left: 24, drift: -8, duration: 5.6, delay: 1.4 },
+    { size: 3, left: 38, drift: 4, duration: 3.6, delay: 0.6 },
+    { size: 7, left: 50, drift: -5, duration: 5.0, delay: 2.2 },
+    { size: 4, left: 62, drift: 7, duration: 4.0, delay: 0.9 },
+    { size: 11, left: 73, drift: -6, duration: 6.2, delay: 3.0 },
+    { size: 5, left: 84, drift: 5, duration: 4.6, delay: 1.8 },
+    { size: 8, left: 92, drift: -4, duration: 5.4, delay: 0.3 },
+    { size: 3, left: 6, drift: 8, duration: 3.8, delay: 2.6 },
+    { size: 6, left: 56, drift: -7, duration: 5.2, delay: 3.6 },
   ]
 
   // Subtle rarity tint behind each droid's placeholder art.
@@ -279,7 +294,9 @@
     class="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border pt-3 text-xs text-subtle"
   >
     {#each slotOrder as slot (slot)}
-      <span class="flex items-center gap-1.5">
+      <span
+        class="flex items-center gap-1.5 {slot === 'Flawless' ? 'ml-auto' : ''}"
+      >
         <span
           class="flex size-3.5 items-center justify-center rounded-full {slotMeta[
             slot
@@ -316,28 +333,42 @@
       {@const slots = slotsFor(droid)}
       {@const have = Math.min(droidex.count(droid.name), slots.length)}
       {@const complete = have === slots.length}
+      {@const flawless = droidex.has(droid.name, 'Flawless')}
       {@const art = droidArt(droid.name, droidex.collection[droid.name] ?? [])}
       <div
-        class="flex flex-col gap-2 rounded-xl border bg-surface p-2.5 transition-colors {complete
+        class="group flex flex-col gap-2 rounded-xl border bg-surface p-2.5 transition-colors {complete
           ? 'border-accent/40'
           : 'border-border'}"
       >
         <div
           class="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br to-transparent {rarityTint[
             droid.category
-          ]}"
+          ]} {flawless ? 'flawless-glow' : ''}"
         >
           {#if art}
             <img
               src={art}
               alt={droid.name}
               loading="lazy"
-              class="size-full object-contain p-1 transition-all {have === 0
+              class="size-full object-contain p-1 transition-transform duration-300 ease-out group-hover:scale-110 {have ===
+              0
                 ? 'opacity-40 grayscale'
                 : ''}"
             />
           {:else}
             <Icon name="droids" size={30} class="text-subtle/40" />
+          {/if}
+          {#if flawless}
+            <div
+              class="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+            >
+              {#each flawlessBubbles as b, i (i)}
+                <span
+                  class="flawless-bubble"
+                  style="left: {b.left}%; width: {b.size}px; height: {b.size}px; --drift: {b.drift}px; animation-duration: {b.duration}s; animation-delay: {b.delay}s;"
+                ></span>
+              {/each}
+            </div>
           {/if}
           <span
             class="absolute top-1 right-1 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold {complete
@@ -346,6 +377,14 @@
           >
             {have}/{slots.length}
           </span>
+          {#if flawless}
+            <span
+              class="absolute bottom-1 left-1 z-10 flex items-center gap-0.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase"
+            >
+              <Icon name="star" size={9} class="text-white" />
+              Flawless
+            </span>
+          {/if}
           {#if complete}
             <span
               class="absolute top-1 left-1 flex size-4 items-center justify-center rounded-full bg-accent text-white"
@@ -367,7 +406,7 @@
           </div>
         </div>
 
-        <div class="flex flex-wrap gap-1">
+        <div class="flex flex-wrap items-center gap-1">
           {#each slots as slot (slot)}
             {@const has = droidex.has(droid.name, slot)}
             <button
@@ -376,7 +415,10 @@
               title={slot}
               aria-label={`${droid.name} ${slot}`}
               aria-pressed={has}
-              class="flex size-5 cursor-pointer items-center justify-center rounded-full border transition-colors {has
+              class="flex size-5 cursor-pointer items-center justify-center rounded-full border transition-colors {slot ===
+              'Flawless'
+                ? 'ml-auto'
+                : ''} {has
                 ? `${slotMeta[slot].dot} border-transparent`
                 : 'border-border bg-transparent hover:border-accent/50'}"
             >
@@ -386,6 +428,8 @@
                   size={11}
                   class={has ? 'text-white' : 'text-subtle'}
                 />
+              {:else if has}
+                <Icon name="check" size={11} class="text-white" />
               {/if}
             </button>
           {/each}
