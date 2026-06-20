@@ -3,6 +3,7 @@
   import Combobox from '$lib/components/Combobox.svelte'
   import Icon from '$lib/components/Icon.svelte'
   import SectionHeader from '$lib/components/SectionHeader.svelte'
+  import { cyclePlanner, resetCyclePlanner } from '$lib/cyclePlanner.svelte'
   import { variantTone } from '$lib/display'
   import { getCycleDroidRequirements, variants } from '$lib/droidUtils'
   import { rebirthSteps } from '$lib/rebirthData'
@@ -19,27 +20,29 @@
     String(minLevel + i),
   )
 
-  let cycle = $state('')
-  let fromLevel = $state(String(minLevel))
-  let toLevel = $state(String(maxLevel))
-  let search = $state('')
-
-  const from = $derived(Number(fromLevel))
-  const to = $derived(Number(toLevel))
+  const from = $derived(Number(cyclePlanner.fromLevel))
+  const to = $derived(Number(cyclePlanner.toLevel))
   const validRange = $derived(from < to)
-  const ready = $derived(cycle !== '' && validRange)
+  const ready = $derived(cyclePlanner.cycle !== '' && validRange)
 
   const requirements = $derived(
     ready
-      ? getCycleDroidRequirements(rebirthSteps, Number(cycle), from, to)
+      ? getCycleDroidRequirements(
+          rebirthSteps,
+          Number(cyclePlanner.cycle),
+          from,
+          to,
+        )
       : [],
   )
 
   const filtered = $derived(
-    search.trim() === ''
+    cyclePlanner.search.trim() === ''
       ? requirements
       : requirements.filter((item) =>
-          item.name.toLowerCase().includes(search.trim().toLowerCase()),
+          item.name
+            .toLowerCase()
+            .includes(cyclePlanner.search.trim().toLowerCase()),
         ),
   )
 
@@ -54,12 +57,7 @@
       .filter((group) => group.items.length > 0),
   )
 
-  const reset = () => {
-    cycle = ''
-    fromLevel = String(minLevel)
-    toLevel = String(maxLevel)
-    search = ''
-  }
+  const reset = resetCyclePlanner
 </script>
 
 <div class="flex flex-col gap-6">
@@ -74,7 +72,7 @@
         <span class="text-xs font-medium text-subtle">Super Rebirth cycle</span>
         <Combobox
           options={cycleOptions}
-          bind:value={cycle}
+          bind:value={cyclePlanner.cycle}
           placeholder="Select cycle…"
           searchPlaceholder="Search…"
           label="Super Rebirth cycle"
@@ -84,7 +82,7 @@
         <span class="text-xs font-medium text-subtle">From</span>
         <Combobox
           options={levelOptions}
-          bind:value={fromLevel}
+          bind:value={cyclePlanner.fromLevel}
           placeholder="From…"
           searchPlaceholder="Search…"
           label="From rebirth level"
@@ -94,7 +92,7 @@
         <span class="text-xs font-medium text-subtle">To</span>
         <Combobox
           options={levelOptions}
-          bind:value={toLevel}
+          bind:value={cyclePlanner.toLevel}
           placeholder="To…"
           searchPlaceholder="Search…"
           label="To rebirth level"
@@ -107,14 +105,14 @@
         >
           <Icon name="search" size={15} class="shrink-0 text-subtle" />
           <input
-            bind:value={search}
+            bind:value={cyclePlanner.search}
             type="text"
             placeholder="Search droids…"
             class="w-full bg-transparent text-sm text-foreground placeholder:text-subtle focus:outline-none"
           />
         </div>
       </div>
-      {#if cycle !== '' || fromLevel !== String(minLevel) || toLevel !== String(maxLevel) || search !== ''}
+      {#if cyclePlanner.cycle !== '' || cyclePlanner.fromLevel !== String(minLevel) || cyclePlanner.toLevel !== String(maxLevel) || cyclePlanner.search !== ''}
         <button
           type="button"
           onclick={reset}
@@ -126,7 +124,7 @@
     </div>
   </div>
 
-  {#if cycle === ''}
+  {#if cyclePlanner.cycle === ''}
     <p class="text-sm text-muted">Select a cycle to see the droid plan.</p>
   {:else if !validRange}
     <p class="text-sm text-muted">
@@ -135,7 +133,7 @@
   {:else if requirements.length === 0}
     <p class="text-sm text-muted">No droids required in that range.</p>
   {:else if groups.length === 0}
-    <p class="text-sm text-muted">No droids match “{search}”.</p>
+    <p class="text-sm text-muted">No droids match “{cyclePlanner.search}”.</p>
   {:else}
     <div class="grid gap-3 lg:grid-cols-2">
       {#each groups as group (group.variant)}
