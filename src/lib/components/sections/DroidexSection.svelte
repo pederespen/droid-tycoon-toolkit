@@ -103,6 +103,40 @@
       droidex.clear()
     }
   }
+
+  // Download the current collection as a JSON backup file.
+  const exportCollection = () => {
+    const blob = new Blob([JSON.stringify(droidex.exportData(), null, 2)], {
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `droidex-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  let fileInput = $state<HTMLInputElement>()
+
+  // Read a chosen JSON backup and replace the current collection.
+  const importCollection = async (event: Event) => {
+    const input = event.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = '' // allow re-importing the same file later
+    if (!file) return
+    try {
+      const data = JSON.parse(await file.text())
+      const count = droidex.importData(data)
+      alert(`Imported ${count} droid${count === 1 ? '' : 's'}.`)
+    } catch (err) {
+      alert(
+        err instanceof Error && err.message.includes('valid')
+          ? err.message
+          : "Couldn't read that file. Make sure it's a Droidex export.",
+      )
+    }
+  }
 </script>
 
 <SectionHeader
@@ -131,15 +165,9 @@
         ></div>
       </div>
     </div>
-    <button
-      type="button"
-      onclick={clearCollection}
-      class="shrink-0 cursor-pointer rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-subtle transition-colors hover:border-rose-500/40 hover:text-rose-500"
-    >
-      Reset
-    </button>
   </div>
 
+  <!-- Search + filter status + collection actions -->
   <div class="flex flex-wrap items-center gap-2">
     <div class="relative min-w-44 flex-1">
       <span
@@ -170,6 +198,44 @@
           {opt.label}
         </button>
       {/each}
+    </div>
+
+    <!-- Backup / reset actions, grouped to the right -->
+    <div class="ml-auto flex items-center gap-1.5">
+      <button
+        type="button"
+        onclick={exportCollection}
+        title="Download your collection as a JSON file"
+        class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-subtle transition-colors hover:border-accent/40 hover:text-accent"
+      >
+        <Icon name="download" size={14} />
+        Export
+      </button>
+      <button
+        type="button"
+        onclick={() => fileInput?.click()}
+        title="Restore a collection from a JSON file"
+        class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-subtle transition-colors hover:border-accent/40 hover:text-accent"
+      >
+        <Icon name="upload" size={14} />
+        Import
+      </button>
+      <span class="mx-0.5 h-5 w-px bg-border"></span>
+      <button
+        type="button"
+        onclick={clearCollection}
+        title="Clear your entire collection"
+        class="cursor-pointer rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-subtle transition-colors hover:border-rose-500/40 hover:text-rose-500"
+      >
+        Reset
+      </button>
+      <input
+        bind:this={fileInput}
+        type="file"
+        accept="application/json,.json"
+        onchange={importCollection}
+        class="hidden"
+      />
     </div>
   </div>
 
