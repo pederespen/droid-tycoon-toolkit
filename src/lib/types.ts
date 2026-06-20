@@ -2,6 +2,16 @@ export type Variant = 'Basic' | 'Gold' | 'Diamond' | 'Rainbow' | 'Beskar'
 export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Legendary'
 export type ToolTab = 'next' | 'lookup' | 'overview'
 
+// A collectible slot tracked in the Droidex. Standard droids can be built in
+// all five variants plus a Flawless roll; iconic droids only have a base form.
+export type CollectionSlot =
+  | 'Basic'
+  | 'Gold'
+  | 'Diamond'
+  | 'Rainbow'
+  | 'Beskar'
+  | 'Flawless'
+
 export type DroidType = 'Worker' | 'Astromech' | 'Battle'
 export type DroidCategory = Rarity | 'Iconic'
 

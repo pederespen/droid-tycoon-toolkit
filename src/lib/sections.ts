@@ -3,6 +3,7 @@ import type { IconName } from './components/Icon.svelte'
 import CosmeticsSection from './components/sections/CosmeticsSection.svelte'
 import CycleFinderSection from './components/sections/CycleFinderSection.svelte'
 import CyclePlannerSection from './components/sections/CyclePlannerSection.svelte'
+import DroidexSection from './components/sections/DroidexSection.svelte'
 import DroidsSection from './components/sections/DroidsSection.svelte'
 import EconomySection from './components/sections/EconomySection.svelte'
 import NovaSection from './components/sections/NovaSection.svelte'
@@ -16,6 +17,7 @@ import { rebirthSteps } from './rebirthData'
 export type SectionId =
   | 'cycle-finder'
   | 'cycle-planner'
+  | 'droidex'
   | 'droids'
   | 'economy'
   | 'rebirths'
@@ -60,6 +62,18 @@ export const sections: Section[] = [
     count: superRebirthPathCount,
     countLabel: 'cycles',
     component: CyclePlannerSection,
+  },
+  {
+    id: 'droidex',
+    label: 'Droidex',
+    path: '/droidex',
+    icon: 'grid',
+    group: 'Tools',
+    description:
+      'Track which droids you’ve built across every variant, and filter down to what you’re still missing.',
+    count: droids.length,
+    countLabel: 'droids to collect',
+    component: DroidexSection,
   },
   {
     id: 'droids',
