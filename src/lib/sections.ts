@@ -40,6 +40,18 @@ export type Section = {
 
 export const sections: Section[] = [
   {
+    id: 'droidex',
+    label: 'Droidex',
+    path: '/droidex',
+    icon: 'grid',
+    group: 'Tools',
+    description:
+      'Track which droids you’ve built across every variant, and filter down to what you’re still missing.',
+    count: droids.length,
+    countLabel: 'droids to collect',
+    component: DroidexSection,
+  },
+  {
     id: 'cycle-finder',
     label: 'Cycle Finder',
     path: '/cycle-finder',
@@ -62,18 +74,6 @@ export const sections: Section[] = [
     count: superRebirthPathCount,
     countLabel: 'cycles',
     component: CyclePlannerSection,
-  },
-  {
-    id: 'droidex',
-    label: 'Droidex',
-    path: '/droidex',
-    icon: 'grid',
-    group: 'Tools',
-    description:
-      'Track which droids you’ve built across every variant, and filter down to what you’re still missing.',
-    count: droids.length,
-    countLabel: 'droids to collect',
-    component: DroidexSection,
   },
   {
     id: 'droids',
