@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="#c96442" />
+  <!-- outer lens housing -->
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#faf9f5" stroke-width="3.5" />
+  <!-- iris ring -->
+  <circle cx="32" cy="32" r="11.5" fill="none" stroke="#faf9f5" stroke-width="2.4" />
+  <!-- aperture blades hint -->
+  <g stroke="#faf9f5" stroke-width="2" stroke-linecap="round">
+    <path d="M32 20.5v4" />
+    <path d="M32 39.5v4" />
+    <path d="M20.5 32h4" />
+    <path d="M39.5 32h4" />
+    <path d="M23.9 23.9l2.8 2.8" />
+    <path d="M37.3 37.3l2.8 2.8" />
+    <path d="M40.1 23.9l-2.8 2.8" />
+    <path d="M26.7 37.3l-2.8 2.8" />
+  </g>
+  <!-- pupil -->
+  <circle cx="32" cy="32" r="4.5" fill="#faf9f5" />
+  <!-- glint -->
+  <circle cx="29.6" cy="29.6" r="1.4" fill="#c96442" />
+</svg>

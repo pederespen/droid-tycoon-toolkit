@@ -5,7 +5,7 @@
   import { sectionByPath, sectionGroups, sections } from './lib/sections'
   import { getTheme, toggleTheme, type Theme } from './lib/theme'
 
-  const logoUrl = `${import.meta.env.BASE_URL}droid.svg`
+  const logoUrl = `${import.meta.env.BASE_URL}logo.svg`
 
   let theme = $state<Theme>(getTheme())
 
