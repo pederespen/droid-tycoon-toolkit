@@ -329,23 +329,11 @@ def open_background_mask(mask: np.ndarray, radius: int) -> np.ndarray:
     eroded = mask
     for _ in range(radius):
         p = np.pad(eroded, 1, constant_values=True)
-        eroded = (
-            eroded
-            & p[:-2, 1:-1]
-            & p[2:, 1:-1]
-            & p[1:-1, :-2]
-            & p[1:-1, 2:]
-        )
+        eroded = eroded & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
     opened = eroded
     for _ in range(radius):
         p = np.pad(opened, 1, constant_values=False)
-        opened = (
-            opened
-            | p[:-2, 1:-1]
-            | p[2:, 1:-1]
-            | p[1:-1, :-2]
-            | p[1:-1, 2:]
-        )
+        opened = opened | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
     return opened & mask
 
 
@@ -369,9 +357,15 @@ def defringe_edges(portrait: Image.Image, passes: int) -> Image.Image:
     kept = np.where(eroded, alpha, 0.0)
     pad = np.pad(kept, 1, mode="edge")
     blur = (
-        pad[:-2, :-2] + pad[:-2, 1:-1] + pad[:-2, 2:]
-        + pad[1:-1, :-2] + pad[1:-1, 1:-1] + pad[1:-1, 2:]
-        + pad[2:, :-2] + pad[2:, 1:-1] + pad[2:, 2:]
+        pad[:-2, :-2]
+        + pad[:-2, 1:-1]
+        + pad[:-2, 2:]
+        + pad[1:-1, :-2]
+        + pad[1:-1, 1:-1]
+        + pad[1:-1, 2:]
+        + pad[2:, :-2]
+        + pad[2:, 1:-1]
+        + pad[2:, 2:]
     ) / 9.0
     feathered = np.minimum(kept, blur)
     rgba[..., 3] = np.clip(feathered * 255.0, 0, 255).astype(np.uint8)
