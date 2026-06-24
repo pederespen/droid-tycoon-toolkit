@@ -117,6 +117,19 @@ OUTPUT_SIZE: int | None = None
 # connected to the image edge are removed, so dark parts of the droid survive.
 BG_TOLERANCE = 36
 
+# Droids have near-black structural parts (struts, vents, shadowed bases) that
+# sit on the black background and are the same colour as it. The flood-fill can
+# leak through the thin gaps between those parts and nibble them away. A
+# morphological opening (erode then dilate) of the background mask by this many
+# pixels removes such thin tendrils, so only the large outer background is
+# cleared and the droid's dark interior detail is kept. 0 disables.
+BG_OPEN_RADIUS = 2
+
+# After background removal the anti-aliased rim where the droid met the black
+# background survives as a dark halo. Defringing erodes the alpha edge by this
+# many pixels and feathers it so the halo fades out. 0 disables.
+DEFRINGE_PASSES = 1
+
 
 def slugify(name: str) -> str:
     """Match the existing public/droids naming: lowercase, non-alphanumerics
@@ -261,10 +274,17 @@ def clean_portrait(
     return out
 
 
-def remove_background(portrait: Image.Image, bg: Color | None, tol: int) -> Image.Image:
+def remove_background(
+    portrait: Image.Image, bg: Color | None, tol: int, open_radius: int
+) -> Image.Image:
     """Make the flat cell background transparent. Flood-fills inward from every
     edge pixel, removing only pixels within `tol` of the background colour that
-    are connected to the border, so dark regions inside the droid are kept."""
+    are connected to the border, so dark regions inside the droid are kept.
+
+    A morphological opening of `open_radius` pixels is then applied to the
+    background mask so thin tendrils that leaked through gaps in the droid's
+    dark structural parts are not removed -- only the large outer background
+    stays cleared."""
     rgba = np.asarray(portrait.convert("RGBA")).copy()
     rgb = rgba[..., :3].astype(np.int16)
     base = np.array(bg if bg is not None else sample_bg(rgba[..., :3]), dtype=np.int16)
@@ -291,8 +311,164 @@ def remove_background(portrait: Image.Image, bg: Color | None, tol: int) -> Imag
                 visited[ny, nx] = True
                 queue.append((ny, nx))
 
+    if open_radius > 0:
+        visited = open_background_mask(visited, open_radius)
+
     rgba[visited, 3] = 0
     return Image.fromarray(rgba, "RGBA")
+
+
+def open_background_mask(mask: np.ndarray, radius: int) -> np.ndarray:
+    """Morphological opening (erode then dilate) of a boolean background mask
+    using a 4-neighbour structuring element, `radius` iterations each way.
+
+    Erosion pads with True so the background touching the image border is not
+    eaten inward from the edge; dilation pads with False. The opening is always
+    a subset of the input, so it can only *un-remove* thin protrusions (leaks
+    into the droid), never remove more."""
+    eroded = mask
+    for _ in range(radius):
+        p = np.pad(eroded, 1, constant_values=True)
+        eroded = (
+            eroded
+            & p[:-2, 1:-1]
+            & p[2:, 1:-1]
+            & p[1:-1, :-2]
+            & p[1:-1, 2:]
+        )
+    opened = eroded
+    for _ in range(radius):
+        p = np.pad(opened, 1, constant_values=False)
+        opened = (
+            opened
+            | p[:-2, 1:-1]
+            | p[2:, 1:-1]
+            | p[1:-1, :-2]
+            | p[1:-1, 2:]
+        )
+    return opened & mask
+
+
+def defringe_edges(portrait: Image.Image, passes: int) -> Image.Image:
+    """Shave the anti-aliased dark halo left around the droid after background
+    removal. Erodes the opaque alpha mask by `passes` pixels and feathers the
+    new edge, so the blended droid/black rim pixels fade out instead of leaving
+    a black outline. Interior pixels are untouched."""
+    if passes <= 0:
+        return portrait
+    rgba = np.asarray(portrait.convert("RGBA")).copy()
+    alpha = rgba[..., 3].astype(np.float32) / 255.0
+    eroded = alpha > 0.5
+    for _ in range(passes):
+        e = eroded.copy()
+        e[1:, :] &= eroded[:-1, :]
+        e[:-1, :] &= eroded[1:, :]
+        e[:, 1:] &= eroded[:, :-1]
+        e[:, :-1] &= eroded[:, 1:]
+        eroded = e
+    kept = np.where(eroded, alpha, 0.0)
+    pad = np.pad(kept, 1, mode="edge")
+    blur = (
+        pad[:-2, :-2] + pad[:-2, 1:-1] + pad[:-2, 2:]
+        + pad[1:-1, :-2] + pad[1:-1, 1:-1] + pad[1:-1, 2:]
+        + pad[2:, :-2] + pad[2:, 1:-1] + pad[2:, 2:]
+    ) / 9.0
+    feathered = np.minimum(kept, blur)
+    rgba[..., 3] = np.clip(feathered * 255.0, 0, 255).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
+
+
+def remove_small_islands(portrait: Image.Image, min_frac: float = 0.02) -> Image.Image:
+    """Delete small disconnected opaque blobs left after background removal --
+    typically stray bits of the flawless sparkle on shimmer variants. Labels the
+    8-connected components of the opaque mask and clears any whose area is below
+    `min_frac` of the largest component, so the droid body is kept but floating
+    specks are removed."""
+    rgba = np.asarray(portrait.convert("RGBA")).copy()
+    solid = rgba[..., 3] > 8
+    h, w = solid.shape
+    labels = np.zeros((h, w), dtype=np.int32)
+    sizes: list[int] = [0]  # index 0 unused
+    cur = 0
+    for sy in range(h):
+        for sx in range(w):
+            if not solid[sy, sx] or labels[sy, sx]:
+                continue
+            cur += 1
+            count = 0
+            stack = [(sy, sx)]
+            labels[sy, sx] = cur
+            while stack:
+                y, x = stack.pop()
+                count += 1
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        ny, nx = y + dy, x + dx
+                        if (
+                            0 <= ny < h
+                            and 0 <= nx < w
+                            and solid[ny, nx]
+                            and not labels[ny, nx]
+                        ):
+                            labels[ny, nx] = cur
+                            stack.append((ny, nx))
+            sizes.append(count)
+    if cur <= 1:
+        return portrait
+    biggest = max(sizes)
+    threshold = biggest * min_frac
+    keep = np.array([0] + [1 if s >= threshold else 0 for s in sizes[1:]], dtype=bool)
+    drop = ~keep[labels]
+    rgba[drop, 3] = 0
+    return Image.fromarray(rgba, "RGBA")
+
+
+def fit_to_content(portrait: Image.Image, margin: float = 0.0) -> Image.Image:
+    """Crop a transparent portrait to the droid's silhouette and re-centre it in
+    a square canvas, so the droid fills the frame consistently regardless of how
+    much empty space (e.g. a painted-over label strip) surrounded it. `margin`
+    adds padding around the droid as a fraction of the silhouette's longer side."""
+    rgba = np.asarray(portrait.convert("RGBA"))
+    ys, xs = np.where(rgba[..., 3] > 8)
+    if len(xs) == 0:
+        return portrait  # fully transparent; nothing to fit
+    x0, x1 = xs.min(), xs.max() + 1
+    y0, y1 = ys.min(), ys.max() + 1
+    cropped = portrait.crop((int(x0), int(y0), int(x1), int(y1)))
+    w, h = cropped.size
+    side = max(w, h)
+    pad = round(side * margin)
+    side += 2 * pad
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(cropped, ((side - w) // 2, (side - h) // 2))
+    return canvas
+
+
+def mask_alpha_for_cell(
+    mask_image: Image.Image,
+    cell: Box,
+    bg: Color | None,
+    keep_marker: bool,
+    keep_label: bool,
+    crop_label: bool,
+    bg_tol: int,
+    bg_open: int,
+    defringe: bool,
+    size: tuple[int, int],
+) -> Image.Image:
+    """Run the full background-removal pipeline on one cell of the clean basic
+    screenshot and return just its alpha channel, resized to `size`. This is
+    the silhouette stamped onto a shimmer variant so it gets the identical,
+    complete cutout instead of its own leak-prone one."""
+    portrait = mask_image.crop(square_box(mask_image, cell))
+    portrait = clean_portrait(portrait, bg, keep_marker, keep_label, crop_label)
+    portrait = remove_background(portrait, bg, bg_tol, bg_open)
+    if defringe:
+        portrait = defringe_edges(portrait, DEFRINGE_PASSES)
+    alpha = portrait.getchannel("A")
+    if alpha.size != size:
+        alpha = alpha.resize(size, Image.LANCZOS)
+    return alpha
 
 
 def write_debug(
@@ -360,18 +536,42 @@ def process(
     crop_label: bool,
     remove_bg: bool,
     bg_tol: int,
+    bg_open: int,
+    defringe: bool,
     rarity: str | None,
     per_droid: bool,
     debug: bool,
+    mask_from: Path | None = None,
+    single: str | None = None,
 ) -> None:
     image = Image.open(src).convert("RGB")
     cells = cell_boxes(*image.size)
-    resolved = load_names(names, len(cells))
+    if single is not None:
+        # The screenshot holds a single droid card; the whole image is one
+        # cell (run with --cols 1 --rows 1) and the name comes from --single.
+        resolved = [slugify(single)]
+    else:
+        resolved = load_names(names, len(cells))
     # A partial page (e.g. the last Droidex page) has fewer droids than the
     # full 5x4 grid; only extract as many cells as there are names.
     if resolved is not None:
         cells = cells[: len(resolved)]
     print(f"{src.name}: {image.size[0]}x{image.size[1]}, {len(cells)} cells")
+
+    # All rarity variants of a droid share the same silhouette, but the shimmer
+    # tiers (gold/diamond/rainbow/beskar) have near-black parts that the
+    # background fill can nibble. With --mask-from we instead take each droid's
+    # alpha from the clean "basic" screenshot's matching cell and stamp it onto
+    # this variant's colours, so every tier gets the identical, complete cutout.
+    mask_image: Image.Image | None = None
+    mask_cells: list[Box] = []
+    if mask_from is not None:
+        mask_image = Image.open(mask_from).convert("RGB")
+        mask_cells = cell_boxes(*mask_image.size)[: len(cells)]
+        if len(mask_cells) < len(cells):
+            raise SystemExit(
+                f"--mask-from image {mask_from.name} has fewer cells than {src.name}"
+            )
 
     if debug:
         write_debug(image, cells, src.with_suffix(".debug.png"), crop_label)
@@ -383,7 +583,33 @@ def process(
         portrait = image.crop(square_box(image, cell))
         portrait = clean_portrait(portrait, bg, keep_marker, keep_label, crop_label)
         if remove_bg:
-            portrait = remove_background(portrait, bg, bg_tol)
+            if mask_image is not None:
+                alpha = mask_alpha_for_cell(
+                    mask_image,
+                    mask_cells[i],
+                    bg,
+                    keep_marker,
+                    keep_label,
+                    crop_label,
+                    bg_tol,
+                    bg_open,
+                    defringe,
+                    portrait.size,
+                )
+                portrait = portrait.convert("RGBA")
+                portrait.putalpha(alpha)
+            else:
+                portrait = remove_background(portrait, bg, bg_tol, bg_open)
+                if defringe:
+                    portrait = defringe_edges(portrait, DEFRINGE_PASSES)
+            if single is not None:
+                # A single-card screenshot frames the droid with extra empty
+                # space (the painted-over label strip becomes transparent), so
+                # drop stray sparkle specks, then tighten the crop to the
+                # silhouette and re-centre it square, matching the framing
+                # density of the grid extractions.
+                portrait = remove_small_islands(portrait)
+                portrait = fit_to_content(portrait)
         if OUTPUT_SIZE is not None:
             portrait = portrait.resize((OUTPUT_SIZE, OUTPUT_SIZE), Image.LANCZOS)
 
@@ -465,8 +691,38 @@ def main() -> None:
         help=f"background-removal colour tolerance, default {BG_TOLERANCE}",
     )
     parser.add_argument(
+        "--bg-open",
+        type=int,
+        help=(
+            "morphological opening radius for the background mask, so the fill "
+            f"does not nibble dark droid parts, default {BG_OPEN_RADIUS} (0 disables)"
+        ),
+    )
+    parser.add_argument(
+        "--no-defringe",
+        action="store_true",
+        help="keep the anti-aliased dark rim (skip edge defringe after --remove-bg)",
+    )
+    parser.add_argument(
+        "--mask-from",
+        type=Path,
+        help=(
+            "take each droid's silhouette from this (clean 'basic') screenshot's "
+            "matching cell instead of the variant's own pixels; avoids the fill "
+            "nibbling near-black parts of shimmer variants. Use with --remove-bg."
+        ),
+    )
+    parser.add_argument(
         "--rarity",
         help="rarity tier of this page (basic, gold, diamond, rainbow, beskar, flawless); names the output",
+    )
+    parser.add_argument(
+        "--single",
+        help=(
+            "treat the input as ONE droid card (the whole image is a single "
+            "cell) and use this name for the output, e.g. --single 'B2 Heavy'. "
+            "Forces a 1x1 grid; combine with --per-droid --rarity --remove-bg."
+        ),
     )
     parser.add_argument(
         "--per-droid",
@@ -503,6 +759,10 @@ def main() -> None:
         COLS = args.cols
     if args.rows is not None:
         ROWS = args.rows
+    if args.single is not None:
+        # A single-droid screenshot is one cell that fills the whole image.
+        COLS = 1
+        ROWS = 1
     if args.border is not None:
         BORDER_INSET = args.border
     if args.label is not None:
@@ -514,9 +774,9 @@ def main() -> None:
 
     bg = parse_color(args.bg) if args.bg else None
 
-    if args.per_droid and args.names is None:
+    if args.per_droid and args.names is None and args.single is None:
         raise SystemExit(
-            "--per-droid needs --names so each droid's folder can be named"
+            "--per-droid needs --names (or --single) so each droid's folder can be named"
         )
     rarity = slugify(args.rarity) if args.rarity else None
 
@@ -535,9 +795,13 @@ def main() -> None:
             args.crop_label,
             args.remove_bg,
             args.bg_tol if args.bg_tol is not None else BG_TOLERANCE,
+            args.bg_open if args.bg_open is not None else BG_OPEN_RADIUS,
+            not args.no_defringe,
             rarity,
             args.per_droid,
             args.debug,
+            args.mask_from,
+            args.single,
         )
 
 
