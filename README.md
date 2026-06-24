@@ -12,11 +12,6 @@ All game data comes from the community-maintained
 [Droid Tycoon spreadsheet](https://docs.google.com/spreadsheets/d/1otLCKSCMKICMlnefirQ8KZhh_rdZTd5Mp8h0UYFUiqg/edit)
 (by reddit u/kitkat082700) — full credit to its authors.
 
-Droid portrait art is sourced from the community
-[Fortnite Fandom wiki](https://fortnite.fandom.com/wiki/Droid_Tycoon).
-These images are © Epic Games / Lucasfilm and are used here for a
-non-commercial fan reference tool.
-
 ## Development
 
 ```sh
@@ -43,13 +38,3 @@ removes the background, and writes one transparent PNG per droid/variant.
 In the Droidex, each card shows the **highest variant you've collected**, falls
 back to the base portrait, and renders grayscale/dimmed until you've collected
 anything.
-
-### Known missing art
-
-The Droidex falls back to the next-best available portrait when a variant is
-missing.
-
-- **Iconic droids** (BB8, Mister Bones, IG-11 Marshal, DJ-R3X, CB-23) — base art
-  only; this is expected, since iconics don't have variant tiers.
-- **CB-23** — not released in-game yet, so its base portrait is a placeholder
-  silhouette.
