@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python (extract_droids.py tooling)
+.venv/
+__pycache__/
+*.pyc

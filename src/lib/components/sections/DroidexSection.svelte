@@ -1,11 +1,9 @@
 <script lang="ts">
-  import Badge from '$lib/components/Badge.svelte'
   import Icon from '$lib/components/Icon.svelte'
   import SectionHeader from '$lib/components/SectionHeader.svelte'
   import { droids } from '$lib/droidsData'
   import { droidex, slotsFor, totalSlots } from '$lib/droidex.svelte'
   import { droidArt } from '$lib/droidArt'
-  import { rarityTone } from '$lib/display'
   import { loadState, saveState } from '$lib/persist'
   import type { CollectionSlot, DroidCategory, DroidType } from '$lib/types'
 
@@ -51,6 +49,16 @@
     Epic: 'from-purple-500/20',
     Legendary: 'from-amber-500/20',
     Iconic: 'from-cyan-500/20',
+  }
+
+  // Opaque rarity chip shown over the portrait (matches the Badge look but is
+  // solid so it stays readable on top of the image).
+  const rarityChip: Record<DroidCategory, string> = {
+    Common: 'bg-slate-100 text-slate-700 ring-slate-500/30',
+    Rare: 'bg-blue-100 text-blue-700 ring-blue-500/30',
+    Epic: 'bg-purple-100 text-purple-700 ring-purple-500/30',
+    Legendary: 'bg-amber-100 text-amber-700 ring-amber-500/30',
+    Iconic: 'bg-cyan-100 text-cyan-700 ring-cyan-500/30',
   }
 
   const rarities: DroidCategory[] = [
@@ -351,9 +359,7 @@
     </button>
   </div>
 {:else}
-  <div
-    class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"
-  >
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
     {#each filtered as droid (droid.name)}
       {@const slots = slotsFor(droid)}
       {@const have = Math.min(droidex.count(droid.name), slots.length)}
@@ -395,28 +401,43 @@
               {/each}
             </div>
           {/if}
+          {#if slots.includes('Flawless')}
+            <button
+              type="button"
+              onclick={() => droidex.toggle(droid.name, 'Flawless')}
+              title="Flawless"
+              aria-label={`${droid.name} Flawless`}
+              aria-pressed={flawless}
+              class="absolute top-1 left-1 z-20 flex size-5 cursor-pointer items-center justify-center rounded-full transition-colors {flawless
+                ? 'flawless-shine text-white'
+                : 'bg-background/70 text-subtle/50 hover:text-amber-300'}"
+            >
+              <Icon name="star" size={11} />
+            </button>
+          {/if}
+          <div class="absolute top-1 right-1 flex items-center gap-1">
+            {#if complete}
+              <span
+                class="flex size-4 items-center justify-center rounded-full bg-accent text-white"
+              >
+                <Icon name="check" size={11} />
+              </span>
+            {/if}
+            <span
+              class="rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold {complete
+                ? 'text-accent'
+                : 'text-subtle'}"
+            >
+              {have}/{slots.length}
+            </span>
+          </div>
           <span
-            class="absolute top-1 right-1 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold {complete
-              ? 'text-accent'
-              : 'text-subtle'}"
+            class="absolute bottom-1 left-1 z-20 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset whitespace-nowrap {rarityChip[
+              droid.category
+            ]}"
           >
-            {have}/{slots.length}
+            {droid.category}
           </span>
-          {#if flawless}
-            <span
-              class="absolute bottom-1 left-1 z-10 flex items-center gap-0.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase"
-            >
-              <Icon name="star" size={9} class="text-white" />
-              Flawless
-            </span>
-          {/if}
-          {#if complete}
-            <span
-              class="absolute top-1 left-1 flex size-4 items-center justify-center rounded-full bg-accent text-white"
-            >
-              <Icon name="check" size={11} />
-            </span>
-          {/if}
         </div>
 
         <div class="min-w-0">
@@ -426,13 +447,10 @@
           >
             {droid.name}
           </p>
-          <div class="mt-1 flex items-center gap-1">
-            <Badge tone={rarityTone[droid.category]}>{droid.category}</Badge>
-          </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-1">
-          {#each slots as slot (slot)}
+          {#each slots.filter((s) => s !== 'Flawless') as slot (slot)}
             {@const has = droidex.has(droid.name, slot)}
             <button
               type="button"
@@ -440,20 +458,11 @@
               title={slot}
               aria-label={`${droid.name} ${slot}`}
               aria-pressed={has}
-              class="flex size-5 cursor-pointer items-center justify-center rounded-full border transition-colors {slot ===
-              'Flawless'
-                ? 'ml-auto'
-                : ''} {has
+              class="flex size-5 cursor-pointer items-center justify-center rounded-full border transition-colors {has
                 ? `${slotMeta[slot].dot} border-transparent`
                 : 'border-border bg-transparent hover:border-accent/50'}"
             >
-              {#if slot === 'Flawless'}
-                <Icon
-                  name="star"
-                  size={11}
-                  class={has ? 'text-white' : 'text-subtle'}
-                />
-              {:else if has}
+              {#if has}
                 <Icon name="check" size={11} class="text-white" />
               {/if}
             </button>
