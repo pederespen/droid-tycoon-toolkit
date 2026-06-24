@@ -4,9 +4,13 @@
     type Column,
     type Row,
   } from '$lib/components/DataTable.svelte'
+  import DroidThumb from '$lib/components/DroidThumb.svelte'
+  import DroidViewToggle from '$lib/components/DroidViewToggle.svelte'
   import SectionHeader from '$lib/components/SectionHeader.svelte'
   import { rebirthSteps } from '$lib/rebirthData'
   import { variantTone } from '$lib/display'
+  import { loadState, saveState } from '$lib/persist'
+  import { droidView } from '$lib/viewMode.svelte'
   import type { RebirthStep, Requirement } from '$lib/types'
 
   const baseColumns: Column[] = [
@@ -22,7 +26,25 @@
     { key: 'cycle3', label: 'Cycle 4' },
   ]
 
-  let visibleCycles = $state<boolean[]>([true, true, true, true])
+  // Restore which cycles are shown, guarding against malformed stored data.
+  const CYCLE_KEY = 'rebirth-cycles-v1'
+  const loadCycles = (): boolean[] => {
+    const saved = loadState<unknown>(CYCLE_KEY, null)
+    if (
+      Array.isArray(saved) &&
+      saved.length === cycleColumns.length &&
+      saved.every((v) => typeof v === 'boolean')
+    ) {
+      return saved as boolean[]
+    }
+    return cycleColumns.map(() => true)
+  }
+
+  let visibleCycles = $state<boolean[]>(loadCycles())
+
+  $effect(() => {
+    saveState(CYCLE_KEY, visibleCycles)
+  })
 
   const columns = $derived([
     ...baseColumns,
@@ -64,6 +86,9 @@
       {cycle.label}
     </button>
   {/each}
+  <div class="ml-auto">
+    <DroidViewToggle />
+  </div>
 </div>
 
 <DataTable {columns} {rows} rowKey={(row) => (row as RebirthStep).from}>
@@ -80,14 +105,27 @@
         <span class="text-muted">{step.unlock}</span>
       {/if}
     {:else}
-      <div class="flex flex-col items-start gap-1 py-0.5">
-        {#each requirementsFor(step, column.key) as req, i (i)}
-          <Badge tone={variantTone[req.variant]}>
-            {req.variant}
-            {req.name}
-          </Badge>
-        {/each}
-      </div>
+      {#if droidView.mode === 'list'}
+        <div class="flex flex-col items-start gap-1 py-0.5">
+          {#each requirementsFor(step, column.key) as req, i (i)}
+            <Badge tone={variantTone[req.variant]}>
+              {req.variant}
+              {req.name}
+            </Badge>
+          {/each}
+        </div>
+      {:else}
+        <div class="flex flex-wrap gap-2 py-0.5">
+          {#each requirementsFor(step, column.key) as req, i (i)}
+            <DroidThumb
+              name={req.name}
+              variant={req.variant}
+              mode={droidView.mode}
+              sublabel={req.variant}
+            />
+          {/each}
+        </div>
+      {/if}
     {/if}
   {/snippet}
 </DataTable>

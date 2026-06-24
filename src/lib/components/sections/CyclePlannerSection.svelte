@@ -1,6 +1,8 @@
 <script lang="ts">
   import Badge from '$lib/components/Badge.svelte'
   import Combobox from '$lib/components/Combobox.svelte'
+  import DroidThumb from '$lib/components/DroidThumb.svelte'
+  import DroidViewToggle from '$lib/components/DroidViewToggle.svelte'
   import Icon from '$lib/components/Icon.svelte'
   import SectionHeader from '$lib/components/SectionHeader.svelte'
   import { cyclePlanner, resetCyclePlanner } from '$lib/cyclePlanner.svelte'
@@ -8,6 +10,7 @@
   import { getCycleDroidRequirements, variants } from '$lib/droidUtils'
   import { rebirthSteps } from '$lib/rebirthData'
   import { superRebirthPathCount } from '$lib/novaData'
+  import { droidView } from '$lib/viewMode.svelte'
   import type { Variant } from '$lib/types'
 
   const minLevel = rebirthSteps[0].from
@@ -121,6 +124,10 @@
           Reset
         </button>
       {/if}
+      <div class="ml-auto flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-subtle">Display</span>
+        <DroidViewToggle />
+      </div>
     </div>
   </div>
 
@@ -144,21 +151,34 @@
             </Badge>
             <span class="text-xs text-subtle">{group.items.length}</span>
           </div>
-          <div class="flex flex-col divide-y divide-border/60">
-            {#each group.items as item (item.variant + item.name)}
-              <div
-                class="flex items-center justify-between gap-3 py-1.5 text-sm"
-              >
-                <span class="font-medium text-foreground">{item.name}</span>
-                <span
-                  class="shrink-0 font-mono text-xs text-subtle"
-                  title="Required at rebirth {item.levels.join(', ')}"
+          {#if droidView.mode === 'list'}
+            <div class="flex flex-col divide-y divide-border/60">
+              {#each group.items as item (item.variant + item.name)}
+                <div
+                  class="flex items-center justify-between gap-3 py-1.5 text-sm"
                 >
-                  {item.levels.join(', ')}
-                </span>
-              </div>
-            {/each}
-          </div>
+                  <span class="font-medium text-foreground">{item.name}</span>
+                  <span
+                    class="shrink-0 font-mono text-xs text-subtle"
+                    title="Required at rebirth {item.levels.join(', ')}"
+                  >
+                    {item.levels.join(', ')}
+                  </span>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="flex flex-wrap gap-2">
+              {#each group.items as item (item.variant + item.name)}
+                <DroidThumb
+                  name={item.name}
+                  variant={group.variant as Variant}
+                  mode={droidView.mode}
+                  sublabel={item.levels.join(', ')}
+                />
+              {/each}
+            </div>
+          {/if}
         </div>
       {/each}
     </div>

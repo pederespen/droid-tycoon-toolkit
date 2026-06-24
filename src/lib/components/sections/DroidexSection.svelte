@@ -6,6 +6,7 @@
   import { droidex, slotsFor, totalSlots } from '$lib/droidex.svelte'
   import { droidArt } from '$lib/droidArt'
   import { rarityTone } from '$lib/display'
+  import { loadState, saveState } from '$lib/persist'
   import type { CollectionSlot, DroidCategory, DroidType } from '$lib/types'
 
   // Visual treatment for each collectible slot. `dot` is the fill used once a
@@ -61,14 +62,38 @@
   ]
   const types: DroidType[] = ['Worker', 'Astromech', 'Battle']
 
-  let search = $state('')
-  let status = $state<'all' | 'missing' | 'complete'>('all')
-  let rarityOn = $state<Record<string, boolean>>(
-    Object.fromEntries(rarities.map((r) => [r, true])),
-  )
-  let typeOn = $state<Record<string, boolean>>(
-    Object.fromEntries(types.map((t) => [t, true])),
-  )
+  const allRaritiesOn = () =>
+    Object.fromEntries(rarities.map((r) => [r, true])) as Record<
+      string,
+      boolean
+    >
+  const allTypesOn = () =>
+    Object.fromEntries(types.map((t) => [t, true])) as Record<string, boolean>
+
+  // Restore previously saved filters, merged over defaults so any rarities or
+  // types added later still default to visible.
+  const FILTER_KEY = 'droidex-filters-v1'
+  const saved = loadState<{
+    search?: string
+    status?: 'all' | 'missing' | 'complete'
+    rarityOn?: Record<string, boolean>
+    typeOn?: Record<string, boolean>
+  }>(FILTER_KEY, {})
+
+  let search = $state(saved.search ?? '')
+  let status = $state<'all' | 'missing' | 'complete'>(saved.status ?? 'all')
+  let rarityOn = $state<Record<string, boolean>>({
+    ...allRaritiesOn(),
+    ...saved.rarityOn,
+  })
+  let typeOn = $state<Record<string, boolean>>({
+    ...allTypesOn(),
+    ...saved.typeOn,
+  })
+
+  $effect(() => {
+    saveState(FILTER_KEY, { search, status, rarityOn, typeOn })
+  })
 
   const toggleRarity = (r: DroidCategory) => {
     rarityOn = { ...rarityOn, [r]: !rarityOn[r] }
@@ -105,8 +130,8 @@
   const resetFilters = () => {
     search = ''
     status = 'all'
-    rarityOn = Object.fromEntries(rarities.map((r) => [r, true]))
-    typeOn = Object.fromEntries(types.map((t) => [t, true]))
+    rarityOn = allRaritiesOn()
+    typeOn = allTypesOn()
   }
 
   const clearCollection = () => {

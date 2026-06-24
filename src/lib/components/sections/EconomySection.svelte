@@ -60,10 +60,10 @@
 
   const upgradeColumns: Column[] = [
     { key: 'rarity', label: 'Rarity' },
-    { key: 'baseToGold', label: 'Basic → Gold', align: 'right' },
-    { key: 'goldToDiamond', label: 'Gold → Diamond', align: 'right' },
-    { key: 'diamondToRainbow', label: 'Diamond → Rainbow', align: 'right' },
-    { key: 'rainbowToBeskar', label: 'Rainbow → Beskar', align: 'right' },
+    { key: 'baseToGold', label: 'Gold', align: 'right' },
+    { key: 'goldToDiamond', label: 'Diamond', align: 'right' },
+    { key: 'diamondToRainbow', label: 'Rainbow', align: 'right' },
+    { key: 'rainbowToBeskar', label: 'Beskar', align: 'right' },
   ]
 
   const upgradeRows: Row[] = rarities.map((rarity) => {
@@ -113,11 +113,13 @@
   // --- Iconic income ------------------------------------------------------
   const iconicColumns: Column[] = [
     { key: 'name', label: 'Droid' },
+    { key: 'perk', label: 'Perk' },
     { key: 'income', label: 'Income', align: 'right' },
   ]
 
   const iconicRows: Row[] = iconicIncome.map((d) => ({
     name: d.name,
+    perk: d.perk ?? '—',
     income: d.income ? `${d.income}/s` : 'Coming soon',
   }))
 </script>
@@ -168,6 +170,12 @@
       {#snippet cell(row, column)}
         {#if column.key === 'name'}
           <span class="font-medium text-foreground">{row.name}</span>
+        {:else if column.key === 'perk'}
+          {#if row.perk === '—'}
+            <span class="text-subtle">—</span>
+          {:else}
+            <span class="text-muted">{row.perk}</span>
+          {/if}
         {:else}
           {row[column.key]}
         {/if}

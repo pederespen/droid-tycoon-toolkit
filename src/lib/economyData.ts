@@ -442,12 +442,16 @@ export const droidEconomy: DroidEconomy[] = [
 // Iconic droids are event-locked, have a single (Base) variant, and generate a
 // percentage of total income per second rather than a flat amount. CB-23 is not
 // yet released.
-export const iconicIncome: { name: string; income: string | null }[] = [
-  { name: 'BB8', income: '15%' },
-  { name: 'Mister Bones', income: '15%' },
-  { name: 'IG-11 Marshal', income: '15%' },
-  { name: 'DJ-R3X', income: '15%' },
-  { name: 'CB-23', income: null }, // Coming soon
+export const iconicIncome: {
+  name: string
+  income: string | null
+  perk: string | null
+}[] = [
+  { name: 'BB8', income: '15%', perk: 'Doubles all upgrade chips' },
+  { name: 'Mister Bones', income: '15%', perk: 'Doubles player damage' },
+  { name: 'IG-11 Marshal', income: '15%', perk: 'Grants a blueprint shield' },
+  { name: 'DJ-R3X', income: '15%', perk: '2x world quest rewards' },
+  { name: 'CB-23', income: null, perk: null }, // Coming soon
 ]
 
 // Chip cost to upgrade a droid from one variant to the next, by rarity.
